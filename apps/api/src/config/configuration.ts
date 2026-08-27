@@ -4,6 +4,7 @@ export interface AppConfig {
   databaseUrl: string;
   jwt: { secret: string; expiresIn: string };
   corsOrigins: string[];
+  throttle: { ttl: number; limit: number; authLimit: number };
   seed: {
     adminEmail: string;
     adminPassword: string;
@@ -32,6 +33,12 @@ export const configuration = (): AppConfig => ({
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
+  throttle: {
+    ttl: Number(process.env.THROTTLE_TTL ?? 60_000),
+    limit: Number(process.env.THROTTLE_LIMIT ?? 240),
+    // Raised for load tests, which sign a few hundred accounts in before the run.
+    authLimit: Number(process.env.AUTH_THROTTLE_LIMIT ?? 20),
+  },
   seed: {
     adminEmail: process.env.SEED_ADMIN_EMAIL ?? 'admin@datawow.io',
     adminPassword: process.env.SEED_ADMIN_PASSWORD ?? 'Admin@1234',

@@ -8,6 +8,11 @@ import { AuthResult, AuthenticatedUser } from './auth.types';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
+// Read once at class definition; decorator arguments cannot reach the ConfigService.
+const AUTH_RATE = {
+  default: { limit: Number(process.env.AUTH_THROTTLE_LIMIT ?? 20), ttl: 60_000 },
+};
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -16,7 +21,7 @@ export class AuthController {
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Throttle(AUTH_RATE)
   @ApiOperation({ summary: 'Create a USER account and return a token' })
   register(@Body() dto: RegisterDto): Promise<AuthResult> {
     return this.auth.register(dto);
@@ -25,7 +30,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Throttle(AUTH_RATE)
   @ApiOperation({ summary: 'Exchange credentials for a JWT' })
   login(@Body() dto: LoginDto): Promise<AuthResult> {
     return this.auth.login(dto);

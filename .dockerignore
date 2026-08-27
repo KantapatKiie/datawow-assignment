@@ -2,6 +2,7 @@
 **/.next
 **/dist
 **/coverage
+**/*.tsbuildinfo
 **/.git
 **/.env
 **/.env.local

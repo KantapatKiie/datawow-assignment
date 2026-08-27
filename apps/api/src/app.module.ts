@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
@@ -22,7 +22,16 @@ import { UsersModule } from './users/users.module';
       // apps/api/.env first, then the repo-root .env used by docker compose.
       envFilePath: ['.env', '../../.env'],
     }),
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 240 }]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          name: 'default',
+          ttl: config.get<number>('throttle.ttl') ?? 60_000,
+          limit: config.get<number>('throttle.limit') ?? 240,
+        },
+      ],
+    }),
     PrismaModule,
     UsersModule,
     AuthModule,
