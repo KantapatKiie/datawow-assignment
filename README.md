@@ -37,9 +37,9 @@ serving. The web container waits for the API healthcheck before it comes up.
 
 | Service     | URL                              |
 | ----------- | -------------------------------- |
-| Web         | http://localhost:3000            |
-| API         | http://localhost:4000/api        |
-| Swagger     | http://localhost:4000/api/docs   |
+| Web         | <http://localhost:3000>            |
+| API         | <http://localhost:4000/api>        |
+| Swagger     | <http://localhost:4000/api/docs>   |
 | Postgres    | localhost:5432                   |
 
 ```bash
