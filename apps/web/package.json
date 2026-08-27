@@ -2,12 +2,12 @@
   "name": "web",
   "version": "1.0.0",
   "private": true,
-  "description": "Next.js frontend — Free Concert Ticket booking",
+  "description": "Next.js frontend \u2014 Free Concert Ticket booking",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p ${PORT:-3000}",
-    "lint": "next lint --max-warnings 0",
+    "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -37,6 +37,7 @@
     "jsdom": "^26.0.0",
     "tailwindcss": "^4.1.3",
     "typescript": "^5.8.2",
-    "vitest": "^3.1.1"
+    "vitest": "^3.1.1",
+    "@eslint/eslintrc": "^3.3.1"
   }
 }
