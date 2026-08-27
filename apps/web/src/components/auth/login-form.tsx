@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useState } from 'react';
@@ -39,9 +40,11 @@ export function LoginForm() {
       const { user } = await authRequest<{ user: SessionUser }>('/api/auth/login', parsed.data);
       toast.success(`Welcome back, ${user.name}`);
 
+      // Only same-origin paths are followed, so ?next= cannot be used as an open redirect.
       const next = searchParams.get('next');
+      const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : null;
       const fallback = user.role === 'ADMIN' ? '/admin' : '/concerts';
-      router.replace(next && next.startsWith('/') ? next : fallback);
+      router.replace((safeNext ?? fallback) as Route);
       router.refresh();
     } catch (error) {
       const message =

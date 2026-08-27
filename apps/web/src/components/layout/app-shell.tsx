@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarDays, ClipboardList, LayoutDashboard, LogOut, Menu, Ticket, X } from 'lucide-react';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
@@ -8,7 +9,7 @@ import { cn, initials } from '@/lib/utils';
 import type { SessionUser } from '@/lib/types';
 
 interface NavItem {
-  href: string;
+  href: Route;
   label: string;
   icon: ReactNode;
 }
@@ -37,7 +38,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
 
   const items = NAV[user.role];
 
-  const isActive = (href: string) =>
+  const isActive = (href: Route) =>
     href === '/admin' || href === '/concerts' ? pathname === href : pathname.startsWith(href);
 
   async function signOut() {
