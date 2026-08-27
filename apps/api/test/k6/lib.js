@@ -61,3 +61,66 @@ export function createConcert(adminToken, name, totalSeats) {
 
   return response.json();
 }
+
+/**
+ * Signs a pool of load-test accounts in. Registration is bcrypt-bound, so the requests are
+ * batched instead of sent one at a time - a thousand sequential calls would blow past the
+ * default setup timeout. Accounts left over from a previous run come back as 409 and are
+ * logged in instead.
+ */
+export function provisionUsers(count, prefix, password = 'Passw0rd1', batchSize = 50) {
+  const tokens = new Array(count);
+  const needsLogin = [];
+
+  for (let start = 0; start < count; start += batchSize) {
+    const end = Math.min(start + batchSize, count);
+    const requests = [];
+
+    for (let i = start; i < end; i++) {
+      requests.push([
+        'POST',
+        `${BASE_URL}/auth/register`,
+        JSON.stringify({
+          email: `${prefix}${i}@test.io`,
+          name: `${prefix} ${i}`,
+          password,
+        }),
+        json(),
+      ]);
+    }
+
+    const responses = http.batch(requests);
+
+    responses.forEach((response, offset) => {
+      const index = start + offset;
+      if (response.status === 201) {
+        tokens[index] = response.json('accessToken');
+      } else if (response.status === 409) {
+        needsLogin.push(index);
+      } else {
+        fail(`register failed for ${prefix}${index}: ${response.status} ${response.body}`);
+      }
+    });
+  }
+
+  for (let start = 0; start < needsLogin.length; start += batchSize) {
+    const slice = needsLogin.slice(start, start + batchSize);
+    const responses = http.batch(
+      slice.map((index) => [
+        'POST',
+        `${BASE_URL}/auth/login`,
+        JSON.stringify({ email: `${prefix}${index}@test.io`, password }),
+        json(),
+      ]),
+    );
+
+    responses.forEach((response, offset) => {
+      if (response.status !== 200) {
+        fail(`login failed for ${prefix}${slice[offset]}: ${response.status} ${response.body}`);
+      }
+      tokens[slice[offset]] = response.json('accessToken');
+    });
+  }
+
+  return tokens;
+}

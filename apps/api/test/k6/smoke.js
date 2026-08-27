@@ -8,6 +8,10 @@ import { BASE_URL, ADMIN, createConcert, json, login, registerOrLogin } from './
  *
  *   k6 run apps/api/test/k6/smoke.js
  */
+// This run deliberately exercises the rejection paths, so 400/403/409 count as expected
+// responses. Anything outside this list moves http_req_failed and trips the threshold.
+http.setResponseCallback(http.expectedStatuses(200, 201, 400, 403, 409));
+
 export const options = {
   vus: 1,
   iterations: 1,
