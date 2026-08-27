@@ -1,0 +1,101 @@
+// Free Concert Ticket - schema
+//
+// Concert.reservedSeats is denormalised on purpose: it makes availability an O(1) read and
+// lets a seat be claimed with a single conditional UPDATE (see ReservationsService).
+// Reservation holds current state, ReservationEvent is an append-only log so the audit trail
+// survives cancellations. Concerts are soft-deleted for the same reason.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ReservationStatus {
+  RESERVED
+  CANCELLED
+}
+
+enum ReservationAction {
+  RESERVE
+  CANCEL
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  concerts     Concert[]          @relation("ConcertCreatedBy")
+  reservations Reservation[]
+  events       ReservationEvent[]
+
+  @@map("users")
+}
+
+model Concert {
+  id           String    @id @default(uuid())
+  name         String
+  description  String
+  totalSeats   Int       @map("total_seats")
+  reservedSeats Int      @default(0) @map("reserved_seats")
+  createdById  String?   @map("created_by_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  createdBy    User?              @relation("ConcertCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  reservations Reservation[]
+  events       ReservationEvent[]
+
+  @@index([deletedAt, createdAt])
+  @@map("concerts")
+}
+
+model Reservation {
+  id          String            @id @default(uuid())
+  userId      String            @map("user_id")
+  concertId   String            @map("concert_id")
+  status      ReservationStatus @default(RESERVED)
+  reservedAt  DateTime          @default(now()) @map("reserved_at")
+  cancelledAt DateTime?         @map("cancelled_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
+
+  // Partial unique index on (user_id, concert_id) WHERE status = 'RESERVED' lives in the
+  // migration SQL - Prisma can't express partial indexes. That is what enforces one seat per
+  // user per concert while still allowing cancel -> reserve again.
+  @@index([userId, status])
+  @@index([concertId, status])
+  @@map("reservations")
+}
+
+model ReservationEvent {
+  id        String            @id @default(uuid())
+  userId    String            @map("user_id")
+  concertId String            @map("concert_id")
+  action    ReservationAction
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concert Concert @relation(fields: [concertId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("reservation_events")
+}
