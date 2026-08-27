@@ -55,3 +55,28 @@ time="2026-08-27T16:27:58+07:00" level=info msg="final state: reserved=10 capaci
 everyone_at_once ✓ [ 100% ] 200 VUs  0m00.9s/2m0s  200/200 iters, 1 per VU
 
 >>>>>>> Run k6 run -e SEATS=10 -e USERS=1000
+running (1m49.9s), 0114/1000 VUs, 886 complete and 0 interrupted iterations
+time="2026-08-27T16:31:25+07:00" level=info msg="final state: reserved=10 capacity=10 available=0" source=console
+    ✗ 'rate==1.0' rate=62.05%
+    ✗ 'rate<0.01' rate=29.85%
+    overbooked_seats
+    ✓ 'count==0' count=0
+    seats_reserved
+    ✓ 'count==10' count=10
+    checks_total.......: 2003   18.158403/s
+    checks_succeeded...: 62.05% 1243 out of 2003
+    checks_failed......: 37.94% 760 out of 2003
+    ✗ reservation resolved cleanly (201 or 409)
+      ↳  24% — ✓ 240 / ✗ 760
+    ✓ no server error under contention
+    ✓ reserved seats never exceed capacity
+    ✓ every seat was taken
+    ✓ concert reports itself sold out
+    overbooked_seats...............: 0      0/s
+    seats_rejected.................: 990    8.974947/s
+    seats_reserved.................: 10     0.090656/s
+    http_req_duration..............: avg=921.32ms min=1.68ms   med=657.09ms max=3.26s p(90)=2.14s    p(95)=2.33s
+    iterations.....................: 1000   9.065603/s
+running (1m50.3s), 0000/1000 VUs, 1000 complete and 0 interrupted iterations
+everyone_at_once ✓ [ 100% ] 1000 VUs  0m03.9s/2m0s  1000/1000 iters, 1 per VU
+time="2026-08-27T16:31:25+07:00" level=error msg="thresholds on metrics 'checks, http_req_failed' have been crossed"

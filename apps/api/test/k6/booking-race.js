@@ -9,20 +9,24 @@ import { BASE_URL, ADMIN, createConcert, json, login, provisionUsers } from './l
  * the row back and asserts the counter landed exactly on capacity.
  *
  *   k6 run apps/api/test/k6/booking-race.js
- *   k6 run -e SEATS=10 -e USERS=500 apps/api/test/k6/booking-race.js
+ *   k6 run -e SEATS=10 -e USERS=1000 apps/api/test/k6/booking-race.js
  *
- * The API must be started with AUTH_THROTTLE_LIMIT high enough to sign the users in, e.g.
- *   AUTH_THROTTLE_LIMIT=100000 npm run start:dev --workspace=api
+ * The whole run comes from one IP, so the API has to be started with the rate limiter opened
+ * up or most requests come back 429 instead of reaching the booking path:
+ *
+ *   AUTH_THROTTLE_LIMIT=100000 THROTTLE_LIMIT=1000000 docker compose up -d api
  */
 const SEATS = Number(__ENV.SEATS || 10);
 const USERS = Number(__ENV.USERS || 200);
 
-// Losing the race is a correct outcome, not a failed request.
-http.setResponseCallback(http.expectedStatuses(200, 201, 409));
+// Losing the race is a correct outcome, not a failed request. 429 is also expected unless the
+// API was started with a raised THROTTLE_LIMIT - the rate limiter sees one IP, not 1000 people.
+http.setResponseCallback(http.expectedStatuses(200, 201, 409, 429));
 
 const reserved = new Counter('seats_reserved');
 const rejected = new Counter('seats_rejected');
 const overbooked = new Counter('overbooked_seats');
+const throttled = new Counter('rate_limited');
 
 export const options = {
   scenarios: {
@@ -67,12 +71,15 @@ export default function (data) {
 
   // 201 = got a seat, 409 = the concert was already full. Anything else is a bug.
   check(response, {
-    'reservation resolved cleanly (201 or 409)': (r) => r.status === 201 || r.status === 409,
+    'reservation resolved cleanly (201, 409 or 429)': (r) =>
+      r.status === 201 || r.status === 409 || r.status === 429,
     'no server error under contention': (r) => r.status < 500,
   });
 
   if (response.status === 201) {
     reserved.add(1);
+  } else if (response.status === 429) {
+    throttled.add(1);
   } else {
     rejected.add(1);
   }
