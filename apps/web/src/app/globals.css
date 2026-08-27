@@ -1,0 +1,356 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Design tokens. Tailwind v4 turns every entry here into a utility class, so
+   `bg-primary` / `text-muted` stay in sync with the raw CSS further down.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-primary: #1692ec;
+  --color-primary-dark: #0f78c4;
+  --color-primary-soft: #e8f4fd;
+  --color-danger: #e84e4e;
+  --color-danger-dark: #cc3b3b;
+  --color-danger-soft: #fdecec;
+  --color-success: #16a97a;
+  --color-success-soft: #e6f7f1;
+  --color-ink: #1b1b1f;
+  --color-muted: #6b7280;
+  --color-canvas: #f4f6fa;
+  --color-surface: #ffffff;
+  --color-line: #e4e8ef;
+
+  --radius-card: 12px;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 4px 16px rgb(16 24 40 / 0.06);
+
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Components written by hand rather than as long Tailwind strings, because they
+   carry state (loading, disabled, sold out) and are reused across every screen.
+--------------------------------------------------------------------------- */
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 22px;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.08s ease,
+    opacity 0.16s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.btn--danger:hover:not(:disabled) {
+  background: var(--color-danger-dark);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--color-line);
+  color: var(--color-ink);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: #f7f9fc;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 14px;
+  min-height: 42px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font: inherit;
+  color: var(--color-ink);
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.field-input::placeholder {
+  color: #9aa3b2;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(22 146 236 / 0.16);
+}
+
+.field-input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.field-input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 3px rgb(232 78 78 / 0.16);
+}
+
+.field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+/* Stat tiles on the admin dashboard */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 28px 20px;
+  border-radius: var(--radius-card);
+  color: #fff;
+  text-align: center;
+}
+
+.stat-card__label {
+  font-size: 15px;
+  opacity: 0.92;
+}
+
+.stat-card__value {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card--seats {
+  background: linear-gradient(135deg, #1e8fe0, #1573bd);
+}
+.stat-card--reserved {
+  background: linear-gradient(135deg, #17b083, #109067);
+}
+.stat-card--cancelled {
+  background: linear-gradient(135deg, #ec5a5a, #c93b3b);
+}
+
+/* Seat availability meter on the concert cards */
+.seat-meter {
+  height: 6px;
+  border-radius: 999px;
+  background: #eef1f6;
+  overflow: hidden;
+}
+
+.seat-meter__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.seat-meter__fill--full {
+  background: var(--color-danger);
+}
+
+/* Toasts */
+.toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgb(16 24 40 / 0.14);
+  animation: toast-in 0.22s ease-out;
+}
+
+.toast--success {
+  border-left-color: var(--color-success);
+}
+.toast--error {
+  border-left-color: var(--color-danger);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+  .btn,
+  .seat-meter__fill {
+    transition: none;
+  }
+}
+
+/* Table that turns into stacked cards on small screens */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-muted);
+  background: #fafbfd;
+  border-bottom: 1px solid var(--color-line);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 640px) {
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table thead {
+    display: none;
+  }
+
+  .data-table tr {
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .data-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 5px 12px;
+    border: none;
+    text-align: right;
+  }
+
+  .data-table td::before {
+    content: attr(data-label);
+    font-weight: 500;
+    color: var(--color-muted);
+    text-align: left;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eef1f6 25%, #e3e8f0 37%, #eef1f6 63%);
+  background-size: 400% 100%;
+  border-radius: 8px;
+  animation: skeleton 1.3s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
